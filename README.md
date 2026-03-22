@@ -20,12 +20,13 @@ The application follows a **microservices architecture**, decoupling the core da
   * Proxying/integrating chat features via Ollama models (`/v1/chat`, `/v1/chat/list-models`).
 
 ### 2. Player Service Model (`player-service-model`)
-* **Framework:** Flask (Python) with `flask_pydantic` request validation.
+* **Framework:** Flask (Python) with `flask_pydantic` for request validation.
 * **Port:** `8657` (Typically containerized via Docker/Podman)
-* **Flow:** On startup, it loads the player features database (`features_db.csv`) and a pre-trained K-Neighbors model (`team_model.joblib`).
+* **ML Model:** Uses `scikit-learn`'s `NearestNeighbors` algorithm (`n_neighbors=25` by default) serialized as `team_model.joblib`. The model is trained inside `a4a_model/train.ipynb` by compiling Z-scores for physical characteristics.
+* **Flow:** On startup, it loads the player features database (`features_db.csv`), extracts dataset-wide mean/std stats for dynamic Z-score calculation on incoming API requests, and loads the pre-trained `team_model.joblib`.
 * **Responsibilities:**
-  * Generating teams of similar players based on either a "seed" player ID or a set of manually provided physical features (height, weight, handedness, etc.).
-  * Handling feedback for generated teams to exclude certain recommendations in future requests (maintains an in-memory `exclude_db` feedback loop).
+  * Generating teams of similar players based on either a "seed" player ID (fetching nearest neighbors) or a set of manually provided physical features (height, weight, handedness, etc., which are then manually z-scored).
+  * Handling feedback for generated teams to exclude certain recommendations in future requests (maintains an in-memory `exclude_db` feedback loop to filter output).
   * Providing mock endpoints for LLM interaction (`/llm/generate`, `/llm/feedback`).
 
 ---
@@ -36,7 +37,13 @@ The application follows a **microservices architecture**, decoupling the core da
 The core application relies on a dynamically generated SQLite `players` table based on the CSV dataset. The schema supports generic querying for player properties such as `playerId`, `birthCountry`, etc., which are translated into standard JSON payloads via the `/v1/players` API.
 
 ### 2. AI / ML Features Schema
-The recommendation engine (`player-service-model`) relies on a specific set of physical features to calculate Z-scores and predict nearest neighbors. 
+The recommendation engine (`player-service-model`) relies on a specific set of physical features to calculate Z-scores and predict nearest neighbors using Euclidean distance (`scikit-learn`).
+
+**Data Preprocessing (`train.ipynb` & `server.py`):**
+During training (`train.ipynb`) and inference (`server.py`), raw data is transformed into a standard scale (Z-scores) to normalize heavily varying metrics.
+* `birthZ`: Z-score of age (computed down to fractions of a year including month/day).
+* `heightZ`, `weightZ`: Z-scores for physical tracking, missing values default to `0.0` (Dataset Mean).
+* `batsN`, `throwsN`: Numerically encoded (`1.0` for Right-handed, `-1.0` for Left-handed, `0.0` for Neither/Switch).
 
 **Model Input Features (Pydantic `Features` Schema):**
 - `birth_year` (float)
@@ -45,7 +52,7 @@ The recommendation engine (`player-service-model`) relies on a specific set of p
 - `bats` (Literals: `"L"`, `"R"`, `"N"`)
 - `throws` (Literals: `"L"`, `"R"`, `"N"`)
 
-*Internally, these inputs are vectorized into numeric standard scales (`birthZ`, `heightZ`, `weightZ`, `batsN`, `throwsN`) to query the `team_model.joblib` artifact.*
+*Internally, these inputs are dynamically vectorized into the standard scales mentioned above using the dataset's historical mean and standard deviation statistics.*
 
 ### 3. API Payload Schemas (`player-service-model`)
 
