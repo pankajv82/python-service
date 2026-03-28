@@ -62,56 +62,102 @@ Contains the same properties as `Player.csv` but with additional calculated norm
 | `bats` | Literal["L", "R", "N"] | Optional |
 | `throws` | Literal["L", "R", "N"] | Optional |
 
-#### `TeamGenerateInput` (POST `/team/generate` Request)
-| Field | Datatype | Optional/Mandatory |
-| :--- | :--- | :--- |
-| `seed_id` | STRING | Optional* |
-| `features` | Features (Object) | Optional* |
-| `team_size` | INTEGER | Mandatory |
+---
+
+## 3. API Endpoints with Schemas
+
+### POST `/team/generate` - Generate Similar Players
+
+**Purpose:** Generate a list of similar players based on physical and playing characteristics.
+
+**Use Cases:**
+- **Scout comparable players:** Find players with similar physical profiles to an existing player
+- **Build a team with specific attributes:** Provide physical characteristics (height, weight, age, batting/throwing hand) to find matching players
+- **Talent discovery:** Identify underrated players who match a specific player's profile
+
+**How it works:**
+- **Input:** Either provide a `seed_id` (existing player ID) OR custom `features` (physical attributes)
+- **Output:** Returns a list of `member_ids` (similar player IDs) with a unique `prediction_id` for tracking
+
+**Example:** "Find 10 players similar to player 'abbotji01'" or "Find 10 players who are 70 inches tall, 180 lbs, right-handed batter"
+
+#### Schema (TeamGenerateInput & TeamGenerateOutput)
+| **Request Field** | **Datatype** | **Req/Opt** | **Response Field** | **Datatype** | **Resp/Opt** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `seed_id` | STRING | Optional* | `seed_id` | STRING | Optional |
+| `features` | Features (Object) | Optional* | `prediction_id` | STRING | Mandatory |
+| `team_size` | INTEGER | Mandatory | `team_size` | INTEGER | Mandatory |
+| | | | `member_ids` | List[STRING] | Mandatory |
+
 *(Note: At least one of `seed_id` or `features` must be provided)*
 
-#### `TeamGenerateOutput` (POST `/team/generate` Response)
-| Field | Datatype | Optional/Mandatory |
-| :--- | :--- | :--- |
-| `seed_id` | STRING | Optional |
-| `prediction_id` | STRING | Mandatory |
-| `team_size` | INTEGER | Mandatory |
-| `member_ids` | List[STRING] | Mandatory |
+---
 
-#### `TeamFeedbackInput` (POST `/team/feedback` Request)
-| Field | Datatype | Optional/Mandatory |
-| :--- | :--- | :--- |
-| `seed_id` | STRING | Mandatory |
-| `member_id` | STRING | Mandatory |
-| `feedback` | Literal[-1, 1] | Mandatory |
-| `prediction_id` | STRING | Mandatory |
+### POST `/team/feedback` - Refine Recommendations with Feedback
 
-#### `TeamFeedbackOutput` (POST `/team/feedback` Response)
-| Field | Datatype | Optional/Mandatory |
-| :--- | :--- | :--- |
-| `seed_id` | STRING | Mandatory |
-| `prediction_id` | STRING | Mandatory |
-| `member_id` | STRING | Mandatory |
-| `accepted` | BOOLEAN | Mandatory |
+**Purpose:** Provide feedback on generated team recommendations to improve future suggestions.
 
-#### `LLMInput` (POST `/llm/generate` Request)
-| Field | Datatype | Optional/Mandatory |
-| :--- | :--- | :--- |
-| `system_prompt` | STRING | Optional |
-| `user_prompt` | STRING | Mandatory |
+**Use Cases:**
+- **Exclude bad recommendations:** Mark a player as a poor recommendation for a specific seed player
+- **Personalize results:** Teach the system which recommendations are relevant and which are not
+- **Refine future generations:** Build a feedback loop that learns user preferences
 
-#### `LLMOutput` (POST `/llm/generate` Response)
-| Field | Datatype | Optional/Mandatory |
-| :--- | :--- | :--- |
-| `response` | STRING | Mandatory |
+**How it works:**
+- **Input:** Provide the `prediction_id` from a previous generation, the `seed_id`, the `member_id` to exclude, and `feedback` (-1 for bad, 1 for good)
+- **Output:** Confirms acceptance of the feedback and stores it for future filtering
 
-#### `LLMFeedbackInput` (POST `/llm/feedback` Request)
-| Field | Datatype | Optional/Mandatory |
-| :--- | :--- | :--- |
-| `feedback` | STRING | Mandatory |
+**Example:** "Player 'maurero01' was a bad recommendation for seed 'abbotji01', so exclude them next time"
 
-#### `LLMFeedbackOutput` (POST `/llm/feedback` Response)
-| Field | Datatype | Optional/Mandatory |
-| :--- | :--- | :--- |
-| `system_prompt` | STRING | Optional |
-| `user_prompt` | STRING | Mandatory |
+#### Schema (TeamFeedbackInput & TeamFeedbackOutput)
+| **Request Field** | **Datatype** | **Req/Opt** | **Response Field** | **Datatype** | **Resp/Opt** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `seed_id` | STRING | Mandatory | `seed_id` | STRING | Mandatory |
+| `member_id` | STRING | Mandatory | `prediction_id` | STRING | Mandatory |
+| `feedback` | Literal[-1, 1] | Mandatory | `member_id` | STRING | Mandatory |
+| `prediction_id` | STRING | Mandatory | `accepted` | BOOLEAN | Mandatory |
+
+---
+
+### POST `/llm/generate` - Generate AI Text Responses
+
+**Purpose:** Generate AI-powered text responses using an LLM (Large Language Model).
+
+**Use Cases:**
+- **Generate descriptions:** Create player profiles or team summaries
+- **Ask questions:** Query the model with custom prompts
+- **Custom responses:** Get intelligent, contextual text based on system and user prompts
+
+**How it works:**
+- **Input:** Provide an optional `system_prompt` (instructions for the LLM) and a required `user_prompt` (the actual question/request)
+- **Output:** Returns a text `response` from the LLM
+
+**Example:** `system_prompt`: "You are a baseball analyst", `user_prompt`: "Describe the strengths of a left-handed pitcher" → Response: "Left-handed pitchers have a natural advantage..."
+
+#### Schema (LLMInput & LLMOutput)
+| **Request Field** | **Datatype** | **Req/Opt** | **Response Field** | **Datatype** | **Resp/Opt** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `system_prompt` | STRING | Optional | `response` | STRING | Mandatory |
+| `user_prompt` | STRING | Mandatory | | | |
+
+---
+
+### POST `/llm/feedback` - Improve LLM Responses
+
+**Purpose:** Provide feedback on LLM-generated responses to refine future outputs.
+
+**Use Cases:**
+- **Quality improvement:** Mark good or bad LLM responses for model fine-tuning
+- **Preference learning:** Teach the system about desired response styles
+- **Context refinement:** Help the system understand what prompts work best
+
+**How it works:**
+- **Input:** Provide `feedback` (a string describing what was good/bad about the response)
+- **Output:** Returns `system_prompt` and `user_prompt` with optional adjustments based on feedback
+
+**Example:** `feedback`: "Response was too technical, please simplify for general audience" → System learns to adjust future responses
+
+#### Schema (LLMFeedbackInput & LLMFeedbackOutput)
+| **Request Field** | **Datatype** | **Req/Opt** | **Response Field** | **Datatype** | **Resp/Opt** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `feedback` | STRING | Mandatory | `system_prompt` | STRING | Optional |
+| | | | `user_prompt` | STRING | Mandatory |

@@ -1,4 +1,5 @@
 import dataclasses
+import os
 import random
 import time
 import uuid
@@ -11,8 +12,17 @@ from flask_pydantic import validate
 import joblib
 from pydantic import BaseModel
 
-nn_model = joblib.load("team_model.joblib")
-player_db = pd.read_csv("features_db.csv")
+# Get the directory of this script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+nn_model = joblib.load(os.path.join(script_dir, "team_model.joblib"))
+player_db = pd.read_csv(os.path.join(script_dir, "features_db.csv"))
+
+# Compute birthFraction from separate year, month, day columns if not already present
+if "birthFraction" not in player_db.columns:
+    player_db["birthFraction"] = player_db["birthYear"] + (player_db["birthMonth"] / 12.0) + (player_db["birthDay"] / 365.0)
+    player_db["birthFraction"] = player_db["birthFraction"].fillna(0.0)
+
 all_players = set(player_db["playerID"])
 features = ["birthZ", "heightZ", "weightZ", "batsN", "throwsN"]
 

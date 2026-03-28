@@ -39,6 +39,23 @@ The core application relies on a dynamically generated SQLite `players` table ba
 ### 2. AI / ML Features Schema
 The recommendation engine (`player-service-model`) relies on a specific set of physical features to calculate Z-scores and predict nearest neighbors using Euclidean distance (`scikit-learn`).
 
+#### What is a Z-Score?
+A **Z-Score** is a statistical measure that standardizes data by centering it around 0 and scaling it to have a standard deviation of 1. It indicates how many standard deviations a data point is from the mean.
+
+**Formula:** $Z = \frac{X - \mu}{\sigma}$
+
+Where:
+- **X** = the data point
+- **μ** = the mean (average) of the dataset
+- **σ** = the standard deviation of the dataset
+
+**Why Z-Scores are used:**
+- **Fair Comparison:** Different attributes have different scales (age in years, height in inches, weight in pounds). Z-Scores normalize them to the same scale.
+- **Algorithm Fairness:** KNN uses Euclidean distance, which would be biased toward attributes with larger ranges without normalization.
+- **Statistical Standard:** Most values fall between -3 and +3 in a normal distribution, making the data predictable and comparable.
+
+**Example:** If average height is 70 inches with a standard deviation of 3 inches, a player who is 76 inches tall has a Z-Score of $\frac{76-70}{3} = 2.0$ (2 standard deviations above average).
+
 **Data Preprocessing (`train.ipynb` & `server.py`):**
 During training (`train.ipynb`) and inference (`server.py`), raw data is transformed into a standard scale (Z-scores) to normalize heavily varying metrics.
 * `birthZ`: Z-score of age (computed down to fractions of a year including month/day).
@@ -101,6 +118,87 @@ Used to exclude specific players from future generated lists for a given seed pl
   "prediction_id": "UUID-string"
 }
 ```
+
+---
+
+## 📋 API Endpoints Reference
+
+### 1. POST `/team/generate` - Generate Similar Players
+
+**Purpose:** Generate a list of similar players based on physical and playing characteristics.
+
+**Use Cases:**
+- **Scout comparable players:** Find players with similar physical profiles to an existing player
+- **Build a team with specific attributes:** Provide physical characteristics (height, weight, age, batting/throwing hand) to find matching players
+- **Talent discovery:** Identify underrated players who match a specific player's profile
+
+**How it works:**
+- **Input:** Either provide a `seed_id` (existing player ID) OR custom `features` (physical attributes)
+- **Output:** Returns a list of `member_ids` (similar player IDs) with a unique `prediction_id` for tracking
+
+**Example:** "Find 10 players similar to player 'abbotji01'" or "Find 10 players who are 70 inches tall, 180 lbs, right-handed batter"
+
+---
+
+### 2. POST `/team/feedback` - Refine Recommendations with Feedback
+
+**Purpose:** Provide feedback on generated team recommendations to improve future suggestions.
+
+**Use Cases:**
+- **Exclude bad recommendations:** Mark a player as a poor recommendation for a specific seed player
+- **Personalize results:** Teach the system which recommendations are relevant and which are not
+- **Refine future generations:** Build a feedback loop that learns user preferences
+
+**How it works:**
+- **Input:** Provide the `prediction_id` from a previous generation, the `seed_id`, the `member_id` to exclude, and `feedback` (-1 for bad, 1 for good)
+- **Output:** Confirms acceptance of the feedback and stores it for future filtering
+
+**Example:** "Player 'maurero01' was a bad recommendation for seed 'abbotji01', so exclude them next time"
+
+---
+
+### 3. POST `/llm/generate` - Generate AI Text Responses
+
+**Purpose:** Generate AI-powered text responses using an LLM (Large Language Model).
+
+**Use Cases:**
+- **Generate descriptions:** Create player profiles or team summaries
+- **Ask questions:** Query the model with custom prompts
+- **Custom responses:** Get intelligent, contextual text based on system and user prompts
+
+**How it works:**
+- **Input:** Provide an optional `system_prompt` (instructions for the LLM) and a required `user_prompt` (the actual question/request)
+- **Output:** Returns a text `response` from the LLM
+
+**Example:** `system_prompt`: "You are a baseball analyst", `user_prompt`: "Describe the strengths of a left-handed pitcher" → Response: "Left-handed pitchers have a natural advantage..."
+
+---
+
+### 4. POST `/llm/feedback` - Improve LLM Responses
+
+**Purpose:** Provide feedback on LLM-generated responses to refine future outputs.
+
+**Use Cases:**
+- **Quality improvement:** Mark good or bad LLM responses for model fine-tuning
+- **Preference learning:** Teach the system about desired response styles
+- **Context refinement:** Help the system understand what prompts work best
+
+**How it works:**
+- **Input:** Provide `feedback` (a string describing what was good/bad about the response)
+- **Output:** Returns `system_prompt` and `user_prompt` with optional adjustments based on feedback
+
+**Example:** `feedback`: "Response was too technical, please simplify for general audience" → System learns to adjust future responses
+
+---
+
+## 🎯 Quick Endpoint Comparison
+
+| Endpoint | Primary Function | Input Type | Output Type |
+| :--- | :--- | :--- | :--- |
+| `/team/generate` | Find similar players | Player ID or physical attributes | List of player IDs |
+| `/team/feedback` | Refine player recommendations | Feedback on a recommendation | Confirmation & storage |
+| `/llm/generate` | Generate AI text responses | System & user prompts | Text response |
+| `/llm/feedback` | Improve LLM responses | Feedback on quality | Updated prompts & guidance |
 
 ---
 
