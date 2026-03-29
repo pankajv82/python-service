@@ -284,16 +284,16 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/v1/ai/compare?player1=aaronha01&player2=willite01",
+          "raw": "{{base_url}}/v1/ai/compare?player_id_1=aaronha01&player_id_2=willite01",
           "host": ["{{base_url}}"],
           "path": ["v1", "ai", "compare"],
           "query": [
             {
-              "key": "player1",
+              "key": "player_id_1",
               "value": "aaronha01"
             },
             {
-              "key": "player2",
+              "key": "player_id_2",
               "value": "willite01"
             }
           ]
@@ -539,14 +539,14 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"playerId\":\"ruthba01\",\"teamMembers\":[\"willite01\",\"mantlem01\",\"gehriglo01\",\"foxxji01\",\"lanniwa01\",\"musiast01\",\"yastca01\",\"kalinea01\"],\"feedback\":\"Great team composition! The balance between offense and defense is perfect.\",\"rating\":5}"
+          "raw": "{\"playerId\":\"ruthba01\",\"feedback\":\"Great player! Excellent stats and performance.\",\"rating\":5}"
         },
         "url": {
           "raw": "{{base_url}}/team/feedback",
           "host": ["{{base_url}}"],
           "path": ["team", "feedback"]
         },
-        "description": "Submit feedback for a generated team (201 response)"
+        "description": "Submit feedback for a player (201 response)"
       }
     },
     {
@@ -561,14 +561,14 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"system_prompt\":\"You are a Baseball Statistics Expert. Answer questions about baseball statistics, player records, and historical facts.\",\"user_prompt\":\"Who holds the record for most home runs in a single season?\"}"
+          "raw": "{\"playerId\":\"aaronha01\",\"teamSize\":9}"
         },
         "url": {
           "raw": "{{base_url}}/llm/generate",
           "host": ["{{base_url}}"],
           "path": ["llm", "generate"]
         },
-        "description": "Generate AI response based on system and user prompts"
+        "description": "Generate a team with a given player ID as seed"
       }
     },
     {
@@ -583,14 +583,14 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"system_prompt\":\"You are a Baseball Statistics Expert. Answer questions about baseball statistics, player records, and historical facts.\",\"user_prompt\":\"Who holds the record for most home runs in a single season?\",\"rating\":5}"
+          "raw": "{\"playerId\":\"aaronha01\",\"rating\":5}"
         },
         "url": {
           "raw": "{{base_url}}/llm/generate-with-feedback",
           "host": ["{{base_url}}"],
           "path": ["llm", "generate-with-feedback"]
         },
-        "description": "Generate AI response and submit feedback (rating 1-5)"
+        "description": "Generate a team and submit feedback for the seed player (rating 1-5)"
       }
     }
   ],
