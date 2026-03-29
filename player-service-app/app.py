@@ -1106,6 +1106,104 @@ def llm_generate_with_feedback():
         logger.error(f'Error in llm_generate_with_feedback: {str(e)}')
         return jsonify({"error": str(e)}), 500
 
+# Health Check Endpoint
+@app.route('/health', methods=['GET'])
+def health_check():
+    """
+    Health check endpoint that verifies overall service health.
+    Checks: API status, Database connectivity, Ollama availability, Model service status
+    """
+    logger.info('GET /health - Health check requested')
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.datetime.now().isoformat(),
+        "components": {}
+    }
+    
+    # 1. Check API/Server status
+    try:
+        health_status["components"]["api"] = {
+            "status": "healthy",
+            "message": "Flask API is running on port 8000"
+        }
+    except Exception as e:
+        health_status["components"]["api"] = {
+            "status": "unhealthy",
+            "message": str(e)
+        }
+        health_status["status"] = "degraded"
+    
+    # 2. Check Database connectivity via PlayerService
+    try:
+        player_service = PlayerService()
+        all_players = player_service.get_all_players()
+        player_count = len(all_players) if isinstance(all_players, list) else 0
+        health_status["components"]["database"] = {
+            "status": "healthy",
+            "message": f"Database connected, {player_count} players found"
+        }
+    except Exception as e:
+        logger.error(f'Database health check failed: {str(e)}')
+        health_status["components"]["database"] = {
+            "status": "unhealthy",
+            "message": f"Database connection failed: {str(e)}"
+        }
+        health_status["status"] = "degraded"
+    
+    # 3. Check Ollama LLM availability
+    try:
+        models = ollama.list()
+        model_count = len(models.get('models', [])) if isinstance(models, dict) else 0
+        health_status["components"]["ollama"] = {
+            "status": "healthy",
+            "message": f"Ollama is available with {model_count} models"
+        }
+    except Exception as e:
+        logger.warning(f'Ollama health check failed: {str(e)}')
+        health_status["components"]["ollama"] = {
+            "status": "unhealthy",
+            "message": f"Ollama unavailable: {str(e)}"
+        }
+        health_status["status"] = "degraded"
+    
+    # 4. Check Model Service at localhost:8657
+    try:
+        model_response = requests.get('http://localhost:8657/health', timeout=2)
+        if model_response.status_code == 200:
+            health_status["components"]["model_service"] = {
+                "status": "healthy",
+                "message": "Team generation model service is available"
+            }
+        else:
+            health_status["components"]["model_service"] = {
+                "status": "degraded",
+                "message": f"Model service returned status {model_response.status_code}"
+            }
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        logger.warning('Model service health check failed - service unavailable (expected if not running)')
+        health_status["components"]["model_service"] = {
+            "status": "unavailable",
+            "message": "Team generation model service not running (optional)"
+        }
+    except Exception as e:
+        logger.warning(f'Model service health check error: {str(e)}')
+        health_status["components"]["model_service"] = {
+            "status": "unavailable",
+            "message": f"Model service check failed: {str(e)}"
+        }
+    
+    # Determine overall status
+    statuses = [c["status"] for c in health_status["components"].values()]
+    if "unhealthy" in statuses:
+        health_status["status"] = "unhealthy"
+        return jsonify(health_status), 503
+    elif "degraded" in statuses or all(s in ["degraded", "unavailable"] for s in statuses):
+        health_status["status"] = "degraded"
+        return jsonify(health_status), 200
+    else:
+        health_status["status"] = "healthy"
+        return jsonify(health_status), 200
+
 if __name__ == '__main__':
     logger.info('Starting Flask application on http://0.0.0.0:8000')
     app.run(host='0.0.0.0', port=8000, debug=True)

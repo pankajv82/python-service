@@ -6,6 +6,24 @@
   },
   "item": [
     {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Health check endpoint - verifies API, Database, Ollama, and Model Service status"
+      }
+    },
+    {
       "name": "Get All Players",
       "request": {
         "method": "GET",
