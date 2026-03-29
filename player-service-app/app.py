@@ -6,7 +6,6 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from flask import Flask, request, jsonify
-from flasgger import Flasgger
 import pandas as pd
 import sqlite3
 from sqlalchemy import create_engine
@@ -19,10 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-swagger = Flasgger(app, title='Player Service API', version='1.0', 
-                   description='Baseball Player Management and AI Analysis API',
-                   uiversion=3)
-logger.info('Flask application initialized with Swagger/OpenAPI docs at /apidocs')
+logger.info('Flask application initialized')
 
 # Load CSV file in pandas dataframe and create SQLite database
 csv_path = os.path.join(os.path.dirname(__file__), 'Player.csv')
@@ -182,7 +178,7 @@ def list_models():
         raise
 
 @app.route('/v1/chat/Original', methods=['POST'])
-def chat():
+def chat_original():
     # Process the data as needed
     response = ollama.chat(model='tinyllama', messages=[
         {

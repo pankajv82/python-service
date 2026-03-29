@@ -145,16 +145,19 @@ class PlayerService:
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         
-        placeholders = ", ".join("?" * len(birth_countries))
-        query = f"SELECT * FROM players WHERE birthCountry IN ({placeholders})"
-        result = self.cursor.execute(query, birth_countries).fetchall()
-        players = [self.convert_row_to_dict(row) for row in result]
-        logger.info(f'Found {len(players)} players from {len(birth_countries)} countries')
-        return {
-            "players": players,
-            "countries": birth_countries,
-            "total": len(players)
-        }
+            placeholders = ", ".join("?" * len(birth_countries))
+            query = f"SELECT * FROM players WHERE birthCountry IN ({placeholders})"
+            result = self.cursor.execute(query, birth_countries).fetchall()
+            players = [self.convert_row_to_dict(row) for row in result]
+            logger.info(f'Found {len(players)} players from {len(birth_countries)} countries')
+            return {
+                "players": players,
+                "countries": birth_countries,
+                "total": len(players)
+            }
+        except Exception as e:
+            logger.error(f'Error in search_by_country_multiple: {str(e)}')
+            raise
 
     def search_by_country_multiple_async(self, birth_countries: list):
         """Fetch players from multiple countries using asyncio and search_by_country (max 5 concurrent)"""
@@ -438,19 +441,22 @@ class PlayerService:
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         
-        placeholders = ", ".join("?" * len(player_ids))
-        query = f"SELECT * FROM Players WHERE playerId IN ({placeholders})"
-        result = self.cursor.execute(query, player_ids).fetchall()
-        players = [self.convert_row_to_dict(row) for row in result]
+            placeholders = ", ".join("?" * len(player_ids))
+            query = f"SELECT * FROM Players WHERE playerId IN ({placeholders})"
+            result = self.cursor.execute(query, player_ids).fetchall()
+            players = [self.convert_row_to_dict(row) for row in result]
 
-        found_ids = {r["playerId"] for r in players}
-        not_found = [pid for pid in player_ids if pid not in found_ids]
-        logger.info(f'Bulk result - found: {len(players)}, not_found: {len(not_found)}')
-        return {
-            "players": players,
-            "not_found": not_found,
-            "total": len(players)
-        }
+            found_ids = {r["playerId"] for r in players}
+            not_found = [pid for pid in player_ids if pid not in found_ids]
+            logger.info(f'Bulk result - found: {len(players)}, not_found: {len(not_found)}')
+            return {
+                "players": players,
+                "not_found": not_found,
+                "total": len(players)
+            }
+        except Exception as e:
+            logger.error(f'Error in get_bulk: {str(e)}')
+            raise
 
     def get_bulk_async(self, player_ids: list):
         """Fetch multiple players using asyncio and search_by_player (max 5 concurrent)"""
