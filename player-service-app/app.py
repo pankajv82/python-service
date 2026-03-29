@@ -2,6 +2,7 @@ import datetime
 import requests
 import json
 import asyncio
+import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from flask import Flask, request, jsonify
@@ -12,7 +13,12 @@ from player_service import PlayerService
 import ollama
 import os
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
+logger.info('Flask application initialized')
 
 # Load CSV file in pandas dataframe and create SQLite database
 csv_path = os.path.join(os.path.dirname(__file__), 'Player.csv')
@@ -23,9 +29,15 @@ df.to_sql('players', con=engine, if_exists='replace', index=False)
 # Get all players
 @app.route('/v1/players', methods=['GET'])
 def get_players():
-    player_service = PlayerService()
-    result = player_service.get_all_players()
-    return result
+    logger.info('GET /v1/players - Fetching all players')
+    try:
+        player_service = PlayerService()
+        result = player_service.get_all_players()
+        logger.info('Successfully retrieved all players')
+        return result
+    except Exception as e:
+        logger.error(f'Error in get_players: {str(e)}')
+        raise
 
 # Get all players with Pagination and sorting
 @app.route('/v1/players/all', methods=['GET'])
@@ -34,8 +46,10 @@ def get_all_players_with_pagination_and_sorting():
         try:
             page = request.args.get('page', 1, type = int)
             size  = request.args.get('size', 20, type = int)
+            logger.info(f'GET /v1/players/all - page={page}, size={size}')
 
         except (ValueError, TypeError):
+            logger.warning('Invalid pagination parameters provided')
             error_response = {"error": "Pagination parameters must be integer", "code": 400, "status": "BAD_REQUEST"}
             return jsonify(error_response), 400
 
@@ -52,18 +66,26 @@ def get_all_players_with_pagination_and_sorting():
 
         return jsonify(result), 200
     except Exception as e:
+        logger.error(f'Error in get_all_players_with_pagination_and_sorting: {str(e)}')
         error_response = {"error": "An Internal error occurred while processing", "code": 500, "status": "INTERNAL_ERROR"}
         return jsonify(error_response), 500
 
 @app.route('/v1/players/<string:player_id>')
 def query_player_id(player_id):
-    player_service = PlayerService()
-    result = player_service.search_by_player(player_id)
+    logger.info(f'GET /v1/players/{player_id} - Query player')
+    try:
+        player_service = PlayerService()
+        result = player_service.search_by_player(player_id)
 
-    if len(result) == 0:
-        return jsonify({"error": "No record found with player_id={}".format(player_id)})
-    else:
-        return jsonify(result)
+        if len(result) == 0:
+            logger.warning(f'Player not found: {player_id}')
+            return jsonify({"error": "No record found with player_id={}".format(player_id)})
+        else:
+            logger.info(f'Player found: {player_id}')
+            return jsonify(result)
+    except Exception as e:
+        logger.error(f'Error in query_player_id: {str(e)}')
+        raise
     
 @app.route('/v1/players/bulk', methods=["POST"])
 def bulk_get_players():
@@ -85,8 +107,10 @@ def bulk_get_players():
 def get_two_players_endpoint():
     player_id_1 = request.args.get('player_id_1', '').strip()
     player_id_2 = request.args.get('player_id_2', '').strip()
+    logger.info(f'GET /v1/players/pair - Comparing {player_id_1} vs {player_id_2}')
     
     if not player_id_1 or not player_id_2:
+        logger.warning('Missing player_id parameters in pair request')
         error_response = {"error": "Missing 'player_id_1' or 'player_id_2' query parameters", "code": 400, "status": "BAD_REQUEST"}
         return jsonify(error_response), 400
     
@@ -102,30 +126,55 @@ def get_two_players_endpoint():
 
 @app.route('/v1/players/<player_id>', methods=["DELETE"])
 def delete_player(player_id):
-    player_service = PlayerService()
-    result, status = player_service.delete(player_id)
-    return jsonify(result), status
+    logger.info(f'DELETE /v1/players/{player_id}')
+    try:
+        player_service = PlayerService()
+        result, status = player_service.delete(player_id)
+        logger.info(f'Player {player_id} deleted successfully')
+        return jsonify(result), status
+    except Exception as e:
+        logger.error(f'Error deleting player {player_id}: {str(e)}')
+        raise
 
 @app.route('/v1/players/<player_id>', methods=["PUT"])
 def update_player(player_id):
-    data = request.get_json(silent=True)
-    player_service = PlayerService()
-    result, status = player_service.update_player(player_id, data)
-    return jsonify(result), status
+    logger.info(f'PUT /v1/players/{player_id}')
+    try:
+        data = request.get_json(silent=True)
+        player_service = PlayerService()
+        result, status = player_service.update_player(player_id, data)
+        logger.info(f'Player {player_id} updated successfully')
+        return jsonify(result), status
+    except Exception as e:
+        logger.error(f'Error updating player {player_id}: {str(e)}')
+        raise
 
 @app.route('/v1/players', methods=["POST"])
 def add_player():
-    data = request.get_json(silent=True)
-    player_service = PlayerService()
-    result, status = player_service.add_player(data)
-    return jsonify(result), status
+    logger.info('POST /v1/players - Creating new player')
+    try:
+        data = request.get_json(silent=True)
+        player_service = PlayerService()
+        result, status = player_service.add_player(data)
+        logger.info('Player created successfully')
+        return jsonify(result), status
+    except Exception as e:
+        logger.error(f'Error creating player: {str(e)}')
+        raise
 
 
 ##############################################################################
 
 @app.route('/v1/chat/list-models')
 def list_models():
-    return jsonify(ollama.list())
+    logger.info('GET /v1/chat/list-models')
+    try:
+        models = ollama.list()
+        logger.info('Models listed successfully')
+        return jsonify(models)
+    except Exception as e:
+        logger.error(f'Error listing models: {str(e)}')
+        raise
 
 @app.route('/v1/chat/Original', methods=['POST'])
 def chat():
@@ -176,10 +225,12 @@ def scout_query():
     AI endpoint for answering questions about players.
     Queries: Top 10 players, Best Hitter, Best bowler, Home run efficiency
     """
+    logger.info('POST /v1/scout/query - Scout query received')
     try:
         data = request.get_json(silent=True)
         
         if not data or "query" not in data:
+            logger.warning('Scout query missing query field')
             return jsonify({"error": "Missing 'query' field"}), 400
         
         query = data.get("query", "").strip()
@@ -245,6 +296,7 @@ OUTPUT SCHEMA:
         }), 200
     
     except Exception as e:
+        logger.error(f'Error in scout_query: {str(e)}')
         return jsonify({
             "error": f"Service error: {str(e)}",
             "status": "failed"
@@ -256,11 +308,13 @@ def compare_players():
     AI endpoint for HEAD to HEAD player comparison.
     Takes 2 player IDs and returns a detailed comparison.
     """
+    logger.info('GET /v1/ai/compare - Player comparison requested')
     try:
         player_id_1 = request.args.get('player_id_1', '').strip()
         player_id_2 = request.args.get('player_id_2', '').strip()
         
         if not player_id_1 or not player_id_2:
+            logger.warning('Compare endpoint missing player IDs')
             return jsonify({"error": "Missing 'player_id_1' or 'player_id_2' parameters"}), 400
         
         # Validate player IDs are reasonable length (prevent injection via parameters)
@@ -1083,4 +1137,5 @@ RESPOND ONLY about your assigned role. Refuse any off-topic requests."""
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+    logger.info('Starting Flask application on http://0.0.0.0:8000')
     app.run(host='0.0.0.0', port=8000, debug=True)
