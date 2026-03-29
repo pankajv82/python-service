@@ -6,12 +6,31 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from sqlalchemy import create_engine
 
-class PlayerService:
-    def __init__(self):
+class PlayerServiceRBAC:
+    def __init__(self, role='reader'):
         conn = sqlite3.connect("player.db")
         self.conn = conn
         self.cursor = conn.cursor()
         self.columns = self.get_columns()
+        self.role = role
+    
+    def mask_sensitive_fields(self, player_dict):
+        """Mask sensitive fields based on user role"""
+        if not isinstance(player_dict, dict):
+            return player_dict
+        
+        masked = player_dict.copy()
+        
+        # Roles: admin (full access), reader (only public fields)
+        if self.role == 'admin':
+            return masked
+        elif self.role == 'reader':
+            # Only return public fields
+            public_fields = ['playerId', 'nameFirst', 'nameLast']
+            public_dict = {k: v for k, v in masked.items() if k in public_fields}
+            return public_dict
+        
+        return masked
 
     def get_all_players(self):
 
@@ -20,6 +39,7 @@ class PlayerService:
         players = []
         for row in result:
             dic = self.convert_row_to_dict(row)
+            dic = self.mask_sensitive_fields(dic)
             players.append(dic)
 
         return players
@@ -62,12 +82,8 @@ class PlayerService:
 
             query = f"SELECT * FROM players ORDER BY {sort_by} {order} LIMIT ? OFFSET ?"
             result = self.cursor.execute(query, (size, offset)).fetchall()
-            # players = []
-            # for row in result:
-            #     dic = self.convert_row_to_dict(row)
-            #     players.append(dic)
 
-            players = [self.convert_row_to_dict(row) for row in result]
+            players = [self.mask_sensitive_fields(self.convert_row_to_dict(row)) for row in result]
             total_pages = math.ceil(total / size)
 
             return {
@@ -97,7 +113,7 @@ class PlayerService:
 
         for row in result:
             dic = self.convert_row_to_dict(row)
-        return dic
+        return self.mask_sensitive_fields(dic)
 
     def search_by_country(self, birth_country):
 
@@ -120,7 +136,7 @@ class PlayerService:
         placeholders = ", ".join("?" * len(birth_countries))
         query = f"SELECT * FROM players WHERE birthCountry IN ({placeholders})"
         result = self.cursor.execute(query, birth_countries).fetchall()
-        players = [self.convert_row_to_dict(row) for row in result]
+        players = [self.mask_sensitive_fields(self.convert_row_to_dict(row)) for row in result]
 
         return {
             "players": players,
@@ -159,7 +175,8 @@ class PlayerService:
                 if isinstance(result, Exception):
                     not_found.append(country)
                 elif result:
-                    players.extend([self.convert_row_to_dict(row) if not isinstance(row, dict) else row for row in result])
+                    masked_results = [self.mask_sensitive_fields(self.convert_row_to_dict(row) if not isinstance(row, dict) else row) for row in result]
+                    players.extend(masked_results)
                 else:
                     not_found.append(country)
             
@@ -199,7 +216,8 @@ class PlayerService:
                     try:
                         result = future.result()
                         if result:
-                            players.extend([self.convert_row_to_dict(row) if not isinstance(row, dict) else row for row in result])
+                            masked_results = [self.mask_sensitive_fields(self.convert_row_to_dict(row) if not isinstance(row, dict) else row) for row in result]
+                            players.extend(masked_results)
                         else:
                             not_found.append(future_to_country[future])
                     except Exception:
@@ -399,10 +417,8 @@ class PlayerService:
         placeholders = ", ".join("?" * len(player_ids))
         query = f"SELECT * FROM Players WHERE playerId IN ({placeholders})"
         result = self.cursor.execute(query, player_ids).fetchall()
-        players = [self.convert_row_to_dict(row) for row in result]
+        players = [self.mask_sensitive_fields(self.convert_row_to_dict(row)) for row in result]
 
-        #rows = {r["playerId"]:r for r in (self.convert_row_to_dict(row) for row in self.cursor.fetchall())}
-        
         found_ids = {r["playerId"] for r in players}
         not_found = [pid for pid in player_ids if pid not in found_ids]
 

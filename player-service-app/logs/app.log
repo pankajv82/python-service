@@ -1,0 +1,17 @@
+[2026-03-28 20:24:51,638] INFO in app: Loaded 19370 players from CSV into SQLite database
+[2026-03-28 20:25:01,599] INFO in app: Loaded 19370 players from CSV into SQLite database
+[2026-03-28 20:25:09,575] INFO in app: Loaded 19370 players from CSV into SQLite database
+[2026-03-28 20:25:09,578] INFO in app: ==================================================
+[2026-03-28 20:25:09,578] INFO in app: Starting Player Service API
+[2026-03-28 20:25:09,579] INFO in app: Log file: C:\Intuit\python-service\player-service-app\logs\app.log
+[2026-03-28 20:25:09,579] INFO in app: ==================================================
+[2026-03-28 20:29:27,918] INFO in app: Loaded 19370 players from CSV into SQLite database
+[2026-03-28 20:29:27,923] INFO in app: ==================================================
+[2026-03-28 20:29:27,923] INFO in app: Starting Player Service API
+[2026-03-28 20:29:27,924] INFO in app: Log file: C:\Intuit\python-service\player-service-app\logs\app.log
+[2026-03-28 20:29:27,924] INFO in app: ==================================================
+[2026-03-28 20:29:36,740] INFO in app: Loaded 19370 players from CSV into SQLite database
+[2026-03-28 20:29:36,743] INFO in app: ==================================================
+[2026-03-28 20:29:36,744] INFO in app: Starting Player Service API
+[2026-03-28 20:29:36,744] INFO in app: Log file: C:\Intuit\python-service\player-service-app\logs\app.log
+[2026-03-28 20:29:36,744] INFO in app: ==================================================

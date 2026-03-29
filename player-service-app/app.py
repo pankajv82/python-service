@@ -23,14 +23,6 @@ def get_players():
     result = player_service.get_all_players()
     return result
 
-def make_error(message, code, status):
-    return {
-        "error": message,
-        "code": code,  
-        "status": status,
-        "timestamp": datetime.now(datetime.timezone.utc).isoformat()
-    }
-
 # Get all players with Pagination and sorting
 @app.route('/v1/players/all', methods=['GET'])
 def get_all_players_with_pagination_and_sorting():
@@ -40,7 +32,8 @@ def get_all_players_with_pagination_and_sorting():
             size  = request.args.get('size', 20, type = int)
 
         except (ValueError, TypeError):
-            make_error("Pagination parameters must be integer", 400, 'BAD_REQUEST')
+            error_response = {"error": "Pagination parameters must be integer", "code": 400, "status": "BAD_REQUEST"}
+            return jsonify(error_response), 400
 
         sort_by = request.args.get('sort_by', 'playerId', type = str)
         order = request.args.get('order', 'asc', type = str)
@@ -55,7 +48,8 @@ def get_all_players_with_pagination_and_sorting():
 
         return jsonify(result), 200
     except Exception as e:
-        return make_error("An Internal error occurred while processing", 500)
+        error_response = {"error": "An Internal error occurred while processing", "code": 500, "status": "INTERNAL_ERROR"}
+        return jsonify(error_response), 500
 
 @app.route('/v1/players/<string:player_id>')
 def query_player_id(player_id):
@@ -72,9 +66,11 @@ def bulk_get_players():
     data = request.get_json(silent=True)
 
     if not data or "player_ids" not in data:
-        return jsonify(make_error("Request body must include 'playerIds'", 400, "BAD_REQUEST")), 400
+        error_response = {"error": "Request body must include 'playerIds'", "code": 400, "status": "BAD_REQUEST"}
+        return jsonify(error_response), 400
     if not isinstance(data["player_ids"], list):
-        return jsonify(make_error("'playerIds' must be a list", 400, "BAD_REQUEST")), 400
+        error_response = {"error": "'playerIds' must be a list", "code": 400, "status": "BAD_REQUEST"}
+        return jsonify(error_response), 400
 
     player_service = PlayerService()
     result = player_service.get_bulk(data["player_ids"])
@@ -89,15 +85,14 @@ def delete_player(player_id):
 
 @app.route('/v1/players/<player_id>', methods=["PUT"])
 def update_player(player_id):
-    data = request.get_json(slient=True)
+    data = request.get_json(silent=True)
     player_service = PlayerService()
     result, status = player_service.update_player(player_id, data)
     return jsonify(result), status
 
-
 @app.route('/v1/players', methods=["POST"])
 def add_player():
-    data = request.get_json(slient=True)
+    data = request.get_json(silent=True)
     player_service = PlayerService()
     result, status = player_service.add_player(data)
     return jsonify(result), status
