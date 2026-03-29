@@ -610,6 +610,300 @@
         },
         "description": "Generate a team and submit feedback for the seed player (rating 1-5)"
       }
+    },
+    {
+      "name": "LangChain Chat List Models",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/chat/list-models",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "chat", "list-models"]
+        },
+        "description": "List available LangChain chat models"
+      }
+    },
+    {
+      "name": "LangChain General Baseball Q&A",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"message\":\"What is a batting average?\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/chat",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "chat"]
+        },
+        "description": "General baseball questions and answers using LangChain"
+      }
+    },
+    {
+      "name": "LangChain Scout Query (RAG)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"Who are the best hitters in the database?\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/scout/query",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "scout", "query"]
+        },
+        "description": "Query player database with LangChain AI analysis (RAG - 20 players max)"
+      }
+    },
+    {
+      "name": "LangChain Compare Players",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/ai/compare?player_id_1=aaronha01&player_id_2=willite01",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "ai", "compare"],
+          "query": [
+            {
+              "key": "player_id_1",
+              "value": "aaronha01"
+            },
+            {
+              "key": "player_id_2",
+              "value": "willite01"
+            }
+          ]
+        },
+        "description": "Compare two players using LangChain AI analysis"
+      }
+    },
+    {
+      "name": "LangChain Generate Player Bio",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/ai/bio/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "ai", "bio", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Generate AI biography for a player using LangChain"
+      }
+    },
+    {
+      "name": "LangChain Balance Team",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/ai/balance-team/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "ai", "balance-team", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Generate a balanced team starting with a given player using LangChain"
+      }
+    },
+    {
+      "name": "LangChain Balance Team by Features",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/ai/balance-team-by-features?height=72&weight=180&throws=R&bats=R",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "ai", "balance-team-by-features"],
+          "query": [
+            {
+              "key": "height",
+              "value": "72"
+            },
+            {
+              "key": "weight",
+              "value": "180"
+            },
+            {
+              "key": "throws",
+              "value": "R"
+            },
+            {
+              "key": "bats",
+              "value": "R"
+            }
+          ]
+        },
+        "description": "Generate a balanced team based on player features using LangChain"
+      }
+    },
+    {
+      "name": "LangChain Balance Team Async",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/ai/balance-team-async/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "ai", "balance-team-async", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Generate a balanced team asynchronously using LangChain"
+      }
+    },
+    {
+      "name": "LangChain Balance Team ThreadPool",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/ai/balance-team-threadpool/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "ai", "balance-team-threadpool", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Generate a balanced team using thread pool with LangChain"
+      }
+    },
+    {
+      "name": "LangChain Balance Team by Features Async",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/ai/balance-team-by-features-async?height=72&weight=180&throws=R&bats=R",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "ai", "balance-team-by-features-async"],
+          "query": [
+            {
+              "key": "height",
+              "value": "72"
+            },
+            {
+              "key": "weight",
+              "value": "180"
+            },
+            {
+              "key": "throws",
+              "value": "R"
+            },
+            {
+              "key": "bats",
+              "value": "R"
+            }
+          ]
+        },
+        "description": "Generate a balanced team by features asynchronously using LangChain"
+      }
+    },
+    {
+      "name": "LangChain Balance Team by Features ThreadPool",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/langchain/ai/balance-team-by-features-threadpool?height=72&weight=180&throws=R&bats=R",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "langchain", "ai", "balance-team-by-features-threadpool"],
+          "query": [
+            {
+              "key": "height",
+              "value": "72"
+            },
+            {
+              "key": "weight",
+              "value": "180"
+            },
+            {
+              "key": "throws",
+              "value": "R"
+            },
+            {
+              "key": "bats",
+              "value": "R"
+            }
+          ]
+        },
+        "description": "Generate a balanced team by features using thread pool with LangChain"
+      }
     }
   ],
   "variable": [

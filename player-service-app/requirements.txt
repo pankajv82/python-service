@@ -4,5 +4,7 @@ requests
 pandas>=2.2.3
 SQLAlchemy==2.0.36
 ollama==0.3.3
+langchain>=0.1.0
+langchain-ollama>=0.1.0
 pytest==8.3.4
 PyJWT>=2.8.0
