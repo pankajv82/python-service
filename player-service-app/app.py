@@ -81,6 +81,25 @@ def bulk_get_players():
 
     return result, 200
 
+@app.route('/v1/players/pair', methods=["GET"])
+def get_two_players_endpoint():
+    player_id_1 = request.args.get('player_id_1', '').strip()
+    player_id_2 = request.args.get('player_id_2', '').strip()
+    
+    if not player_id_1 or not player_id_2:
+        error_response = {"error": "Missing 'player_id_1' or 'player_id_2' query parameters", "code": 400, "status": "BAD_REQUEST"}
+        return jsonify(error_response), 400
+    
+    player_service = PlayerService()
+    result = player_service.get_bulk([player_id_1, player_id_2])
+    
+    # Check if service returned an error
+    if isinstance(result, dict) and "error" in result:
+        status = result.get("status", 400)
+        return jsonify(result), status
+    
+    return jsonify(result), 200
+
 @app.route('/v1/players/<player_id>', methods=["DELETE"])
 def delete_player(player_id):
     player_service = PlayerService()
@@ -107,6 +126,19 @@ def add_player():
 @app.route('/v1/chat/list-models')
 def list_models():
     return jsonify(ollama.list())
+
+@app.route('/v1/chat/Original', methods=['POST'])
+def chat():
+    # Process the data as needed
+    response = ollama.chat(model='tinyllama', messages=[
+        {
+            'role': 'user',
+            'content': 'Why is the sky blue?',
+        },
+    ])
+    return jsonify(response), 200
+
+##############################################################################
 
 @app.route('/v1/chat', methods=['POST'])
 def chat():
