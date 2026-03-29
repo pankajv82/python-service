@@ -1,0 +1,604 @@
+{
+  "info": {
+    "name": "Player Service API",
+    "description": "Baseball Player Management and AI Analysis API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Players",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/players",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "players"]
+        },
+        "description": "Get all players from the database"
+      }
+    },
+    {
+      "name": "Get All Players with Pagination",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/players/all?page=1&size=20",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "players", "all"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "size",
+              "value": "20"
+            }
+          ]
+        },
+        "description": "Get all players with pagination and sorting"
+      }
+    },
+    {
+      "name": "Get Player by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/players/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "players", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Get a specific player by player ID"
+      }
+    },
+    {
+      "name": "Bulk Get Players",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"player_ids\":[\"aaronha01\",\"willite01\"]}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/players/bulk",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "players", "bulk"]
+        },
+        "description": "Get multiple players by their IDs"
+      }
+    },
+    {
+      "name": "Get Random Player Pair",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/players/pair",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "players", "pair"]
+        },
+        "description": "Get a random pair of players for comparison"
+      }
+    },
+    {
+      "name": "Delete Player",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/players/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "players", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Delete a player by ID"
+      }
+    },
+    {
+      "name": "Update Player",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nameFirst\":\"Updated\",\"nameLast\":\"Player\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/players/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "players", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Update a player's information"
+      }
+    },
+    {
+      "name": "Create Player",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"playerId\":\"test001\",\"nameFirst\":\"Test\",\"nameLast\":\"Player\",\"birthYear\":1990,\"birthMonth\":1,\"birthDay\":1,\"birthCountry\":\"USA\",\"birthState\":\"CA\",\"birthCity\":\"Test City\",\"deathYear\":null,\"deathMonth\":null,\"deathDay\":null,\"deathCountry\":null,\"deathState\":null,\"deathCity\":null,\"nameGiven\":\"Test Player\",\"weight\":180,\"height\":72,\"bats\":\"R\",\"throws\":\"R\",\"debut\":\"2020-01-01\",\"finalGame\":null,\"retroId\":\"test001\",\"bbrefId\":\"test001\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/players",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "players"]
+        },
+        "description": "Create a new player"
+      }
+    },
+    {
+      "name": "List Chat Models",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/chat/list-models",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "chat", "list-models"]
+        },
+        "description": "List available chat models"
+      }
+    },
+    {
+      "name": "Chat Original",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/chat/Original",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "chat", "Original"]
+        },
+        "description": "Original chat endpoint (fixed response)"
+      }
+    },
+    {
+      "name": "General Baseball Q&A",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"message\":\"What is a batting average?\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/chat",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "chat"]
+        },
+        "description": "General baseball questions and answers (NO RAG)"
+      }
+    },
+    {
+      "name": "Scout Query (RAG)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"Who are the best hitters in the database?\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/scout/query",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "scout", "query"]
+        },
+        "description": "Query player database with AI analysis (RAG - 20 players max)"
+      }
+    },
+    {
+      "name": "Compare Players",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/ai/compare?player1=aaronha01&player2=willite01",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "ai", "compare"],
+          "query": [
+            {
+              "key": "player1",
+              "value": "aaronha01"
+            },
+            {
+              "key": "player2",
+              "value": "willite01"
+            }
+          ]
+        },
+        "description": "Compare two players using AI analysis"
+      }
+    },
+    {
+      "name": "Generate Player Bio",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/ai/bio/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "ai", "bio", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Generate AI biography for a player"
+      }
+    },
+    {
+      "name": "Balance Team",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/ai/balance-team/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "ai", "balance-team", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Generate a balanced team starting with a given player"
+      }
+    },
+    {
+      "name": "Balance Team by Features",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/ai/balance-team-by-features?height=72&weight=180&throws=R&bats=R",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "ai", "balance-team-by-features"],
+          "query": [
+            {
+              "key": "height",
+              "value": "72"
+            },
+            {
+              "key": "weight",
+              "value": "180"
+            },
+            {
+              "key": "throws",
+              "value": "R"
+            },
+            {
+              "key": "bats",
+              "value": "R"
+            }
+          ]
+        },
+        "description": "Generate a balanced team based on player features"
+      }
+    },
+    {
+      "name": "Balance Team Async",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/ai/balance-team-async/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "ai", "balance-team-async", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Generate a balanced team asynchronously"
+      }
+    },
+    {
+      "name": "Balance Team ThreadPool",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/ai/balance-team-threadpool/:player_id",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "ai", "balance-team-threadpool", ":player_id"],
+          "variable": [
+            {
+              "key": "player_id",
+              "value": "aaronha01"
+            }
+          ]
+        },
+        "description": "Generate a balanced team using thread pool"
+      }
+    },
+    {
+      "name": "Balance Team by Features Async",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/ai/balance-team-by-features-async?height=72&weight=180&throws=R&bats=R",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "ai", "balance-team-by-features-async"],
+          "query": [
+            {
+              "key": "height",
+              "value": "72"
+            },
+            {
+              "key": "weight",
+              "value": "180"
+            },
+            {
+              "key": "throws",
+              "value": "R"
+            },
+            {
+              "key": "bats",
+              "value": "R"
+            }
+          ]
+        },
+        "description": "Generate a balanced team by features asynchronously"
+      }
+    },
+    {
+      "name": "Balance Team by Features ThreadPool",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/ai/balance-team-by-features-threadpool?height=72&weight=180&throws=R&bats=R",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "ai", "balance-team-by-features-threadpool"],
+          "query": [
+            {
+              "key": "height",
+              "value": "72"
+            },
+            {
+              "key": "weight",
+              "value": "180"
+            },
+            {
+              "key": "throws",
+              "value": "R"
+            },
+            {
+              "key": "bats",
+              "value": "R"
+            }
+          ]
+        },
+        "description": "Generate a balanced team by features using thread pool"
+      }
+    },
+    {
+      "name": "Generate Team",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"playerId\":\"aaronha01\",\"teamSize\":9}"
+        },
+        "url": {
+          "raw": "{{base_url}}/team/generate",
+          "host": ["{{base_url}}"],
+          "path": ["team", "generate"]
+        },
+        "description": "Generate a balanced team with a given player ID"
+      }
+    },
+    {
+      "name": "Team Feedback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"playerId\":\"ruthba01\",\"teamMembers\":[\"willite01\",\"mantlem01\",\"gehriglo01\",\"foxxji01\",\"lanniwa01\",\"musiast01\",\"yastca01\",\"kalinea01\"],\"feedback\":\"Great team composition! The balance between offense and defense is perfect.\",\"rating\":5}"
+        },
+        "url": {
+          "raw": "{{base_url}}/team/feedback",
+          "host": ["{{base_url}}"],
+          "path": ["team", "feedback"]
+        },
+        "description": "Submit feedback for a generated team (201 response)"
+      }
+    },
+    {
+      "name": "LLM Generate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"system_prompt\":\"You are a Baseball Statistics Expert. Answer questions about baseball statistics, player records, and historical facts.\",\"user_prompt\":\"Who holds the record for most home runs in a single season?\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/llm/generate",
+          "host": ["{{base_url}}"],
+          "path": ["llm", "generate"]
+        },
+        "description": "Generate AI response based on system and user prompts"
+      }
+    },
+    {
+      "name": "LLM Generate with Feedback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"system_prompt\":\"You are a Baseball Statistics Expert. Answer questions about baseball statistics, player records, and historical facts.\",\"user_prompt\":\"Who holds the record for most home runs in a single season?\",\"rating\":5}"
+        },
+        "url": {
+          "raw": "{{base_url}}/llm/generate-with-feedback",
+          "host": ["{{base_url}}"],
+          "path": ["llm", "generate-with-feedback"]
+        },
+        "description": "Generate AI response and submit feedback (rating 1-5)"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}

@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 
 class PlayerServiceRBAC:
     def __init__(self, role='reader'):
-        conn = sqlite3.connect("player.db")
+        conn = sqlite3.connect("player.db", check_same_thread=False)
         self.conn = conn
         self.cursor = conn.cursor()
         self.columns = self.get_columns()

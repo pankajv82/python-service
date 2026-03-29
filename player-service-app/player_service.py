@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class PlayerService:
     def __init__(self):
         logger.info('Initializing PlayerService')
-        conn = sqlite3.connect("player.db")
+        conn = sqlite3.connect("player.db", check_same_thread=False)
         self.conn = conn
         self.cursor = conn.cursor()
         self.columns = self.get_columns()
@@ -110,13 +110,13 @@ class PlayerService:
             query = "SELECT * FROM players WHERE playerId='{}'".format(player_id)
             result = self.cursor.execute(query).fetchall()
 
-            for row in result:
-                dic = self.convert_row_to_dict(row)
             if result:
+                dic = self.convert_row_to_dict(result[0])
                 logger.info(f'Player found: {player_id}')
+                return dic
             else:
                 logger.warning(f'Player not found: {player_id}')
-            return dic
+                return None
         except Exception as e:
             logger.error(f'Error in search_by_player: {str(e)}')
             raise
@@ -311,7 +311,7 @@ class PlayerService:
             values = [data[k] for k in valid_keys]
 
             self.cursor.execute(
-                f"INSTERT INTO players ({cols_str} VALUES ({placeholders}))", values
+                f"INSERT INTO players ({cols_str}) VALUES ({placeholders})", values
             )
             self.conn.commit()
             logger.info(f'Player {pid} added successfully')
