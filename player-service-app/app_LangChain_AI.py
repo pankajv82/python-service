@@ -315,12 +315,12 @@ def get_player_biography(player_id):
         bats = player_data.get('bats', '')
         throws = player_data.get('throws', '')
         
-        # Build prompt with player facts
-        prompt = f"""## SYSTEM ROLE
+        # System prompt - instructions and guidelines
+        system_prompt = """## SYSTEM ROLE
 You are a Baseball Historian and Biographer specializing in player narratives.
 
 ## PRIMARY OBJECTIVE
-Generate a compelling 2-3 sentence biography for {first_name} {last_name} based on the provided facts.
+Generate a compelling 2-3 sentence biography based on the provided facts.
 
 ## CRITICAL CONSTRAINTS
 - ONLY use the facts provided below
@@ -330,14 +330,6 @@ Generate a compelling 2-3 sentence biography for {first_name} {last_name} based 
 - Keep response to exactly 2-3 sentences
 - Be engaging but factual
 
-## PROVIDED FACTS
-- Name: {first_name} {last_name}
-- Birth Year: {int(birth_year) if birth_year else 'Unknown'}
-- Birthplace: {birth_city}, {birth_state}
-- Physical Attributes: {int(height) if height else '?'} inches tall, {int(weight) if weight else '?'} pounds
-- Batting/Throwing: {bats}/{throws}
-- Professional Career Span: {debut} to {final_game}
-
 ## RESPONSE FORMAT
 Write a biography that:
 1. Opens with player identification and era
@@ -345,17 +337,29 @@ Write a biography that:
 3. Captures the span and significance of their career
 
 Example: "Babe Ruth (1895-1935) was a 6'2" left-handed slugger who revolutionized baseball from 1914 to 1935. His prodigious power and charismatic presence made him the game's first true superstar. Ruth's 22-year career spanned from Boston to New York, fundamentally changing how the sport was played."""
+        
+        # User prompt - player-specific facts
+        user_prompt = f"""## PROVIDED FACTS
+- Name: {first_name} {last_name}
+- Birth Year: {int(birth_year) if birth_year else 'Unknown'}
+- Birthplace: {birth_city}, {birth_state}
+- Physical Attributes: {int(height) if height else '?'} inches tall, {int(weight) if weight else '?'} pounds
+- Batting/Throwing: {bats}/{throws}
+- Professional Career Span: {debut} to {final_game}
+
+Generate a biography for this player."""
 
         logger.info(f'Calling LangChain LLM to generate bio for {first_name} {last_name}')
         
         try:
-            # Create LangChain message
-            user_msg = HumanMessage(content=prompt)
+            # Create LangChain messages - separate system and user prompts
+            system_msg = SystemMessage(content=system_prompt)
+            user_msg = HumanMessage(content=user_prompt)
             
             # Use higher temperature for creative biography
             # COMMENTED: Enable JSON format mode - llm_creative = OllamaLLM(model="tinyllama", temperature=0.6, format='json')
             llm_creative = OllamaLLM(model="tinyllama", temperature=0.6)
-            response = llm_creative.invoke([user_msg])
+            response = llm_creative.invoke([system_msg, user_msg])
             
             bio_text = str(response).strip()
             if bio_text and len(bio_text) > 10:

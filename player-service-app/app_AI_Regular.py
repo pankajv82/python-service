@@ -306,12 +306,12 @@ def get_player_biography(player_id):
         bats = player.get('bats', '')
         throws = player.get('throws', '')
         
-        # Build prompt with player facts
-        prompt = f"""## SYSTEM ROLE
+        # System prompt - instructions and guidelines
+        system_prompt = """## SYSTEM ROLE
 You are a Baseball Historian and Biographer specializing in player narratives.
 
 ## PRIMARY OBJECTIVE
-Generate a compelling 2-3 sentence biography for {first_name} {last_name} based on the provided facts.
+Generate a compelling 2-3 sentence biography based on the provided facts.
 
 ## CRITICAL CONSTRAINTS
 - ONLY use the facts provided below
@@ -321,14 +321,6 @@ Generate a compelling 2-3 sentence biography for {first_name} {last_name} based 
 - Keep response to exactly 2-3 sentences
 - Be engaging but factual
 
-## PROVIDED FACTS
-- Name: {first_name} {last_name}
-- Birth Year: {int(birth_year) if birth_year else 'Unknown'}
-- Birthplace: {birth_city}, {birth_state}
-- Physical Attributes: {int(height) if height else '?'} inches tall, {int(weight) if weight else '?'} pounds
-- Batting/Throwing: {bats}/{throws}
-- Professional Career Span: {debut} to {final_game}
-
 ## RESPONSE FORMAT
 Write a biography that:
 1. Opens with player identification and era
@@ -336,13 +328,25 @@ Write a biography that:
 3. Captures the span and significance of their career
 
 Example: "Babe Ruth (1895-1935) was a 6'2" left-handed slugger who revolutionized baseball from 1914 to 1935. His prodigious power and charismatic presence made him the game's first true superstar. Ruth's 22-year career spanned from Boston to New York, fundamentally changing how the sport was played."""
+        
+        # User prompt - player-specific facts
+        user_prompt = f"""## PROVIDED FACTS
+- Name: {first_name} {last_name}
+- Birth Year: {int(birth_year) if birth_year else 'Unknown'}
+- Birthplace: {birth_city}, {birth_state}
+- Physical Attributes: {int(height) if height else '?'} inches tall, {int(weight) if weight else '?'} pounds
+- Batting/Throwing: {bats}/{throws}
+- Professional Career Span: {debut} to {final_game}
+
+Generate a biography for this player."""
 
         logger.info(f'Calling Ollama to generate bio for {first_name} {last_name}')
         
         response = ollama.chat(
             model='tinyllama',
             messages=[
-                {'role': 'user', 'content': prompt}
+                {'role': 'system', 'content': system_prompt},
+                {'role': 'user', 'content': user_prompt}
             ],
             options={'temperature': 0.6}
             # COMMENTED: Enable JSON format mode - format='json'
