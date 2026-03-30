@@ -59,7 +59,26 @@ def authenticate_request():
         return None, None
 
 def require_auth(f):
-    """Decorator to require JWT authentication"""
+    """
+    Decorator that enforces JWT (OAuth) authentication on Flask route handlers.
+
+    How it works:
+      1. Wraps the target route function using @wraps to preserve its name/metadata.
+      2. Before the route runs, calls authenticate_request() which reads the
+         'Authorization: Bearer <token>' header and validates the JWT token.
+      3. If the token is missing or invalid → returns 401 Unauthorized immediately;
+         the actual route function never executes.
+      4. If the token is valid → injects 'username' and 'role' as keyword arguments
+         into the route function, enabling per-route RBAC checks.
+
+    Usage:
+      @app.route('/some/path')
+      @require_auth
+      def my_route(username=None, role=None):
+          ...
+
+    Roles available: 'admin', 'reader'
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         username, role = authenticate_request()

@@ -37,7 +37,26 @@ def authenticate_request():
     return username, role
 
 def require_auth(f):
-    """Decorator to require authentication"""
+    """
+    Decorator that enforces authentication on Flask route handlers.
+
+    How it works:
+      1. Wraps the target route function using @wraps to preserve its name/metadata.
+      2. Before the route runs, calls authenticate_request() which validates
+         credentials from the incoming request (e.g. Basic Auth or session).
+      3. If credentials are missing or invalid → returns 401 Unauthorized immediately;
+         the actual route function never executes.
+      4. If credentials are valid → injects 'username' and 'role' as keyword arguments
+         into the route function, enabling per-route RBAC checks.
+
+    Usage:
+      @app.route('/some/path')
+      @require_auth
+      def my_route(username=None, role=None):
+          ...
+
+    Roles available: 'admin', 'reader'
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         username, role = authenticate_request()

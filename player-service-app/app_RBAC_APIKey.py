@@ -34,7 +34,26 @@ def authenticate_request_api_key():
     return None, None
 
 def require_auth(f):
-    """Decorator to require API Key authentication"""
+    """
+    Decorator that enforces API Key authentication on Flask route handlers.
+
+    How it works:
+      1. Wraps the target route function using @wraps to preserve its name/metadata.
+      2. Before the route runs, calls authenticate_request_api_key() which reads
+         the 'X-API-Key' header and validates it against a known key dictionary.
+      3. If the key is missing or invalid → returns 401 Unauthorized immediately;
+         the actual route function never executes.
+      4. If the key is valid → injects 'username' and 'role' as keyword arguments
+         into the route function, enabling per-route RBAC checks.
+
+    Usage:
+      @app.route('/some/path')
+      @require_auth
+      def my_route(username=None, role=None):
+          ...
+
+    Roles available: 'admin', 'reader'
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         username, role = authenticate_request_api_key()
