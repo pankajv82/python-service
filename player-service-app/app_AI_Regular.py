@@ -2,7 +2,7 @@ import datetime
 import requests
 import json
 import asyncio
-import logging
+## import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from flask import Flask, request, jsonify
@@ -14,11 +14,11 @@ import ollama
 import os
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+## logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+## logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-logger.info('Flask application initialized')
+## logger.info('Flask application initialized')
 
 # Load CSV file in pandas dataframe and create SQLite database
 csv_path = os.path.join(os.path.dirname(__file__), 'Player.csv')
@@ -30,13 +30,13 @@ df.to_sql('players', con=engine, if_exists='replace', index=False)
 
 @app.route('/v1/chat/list-models')
 def list_models():
-    logger.info('GET /v1/chat/list-models')
+    ## logger.info('GET /v1/chat/list-models')
     try:
         models = ollama.list()
-        logger.info('Models listed successfully')
+        ## logger.info('Models listed successfully')
         return jsonify(models)
     except Exception as e:
-        logger.error(f'Error listing models: {str(e)}')
+        ## logger.error(f'Error listing models: {str(e)}')
         raise
 
 @app.route('/v1/chat/Original', methods=['POST'])
@@ -67,7 +67,7 @@ def chat_original():
 @app.route('/v1/chat', methods=['POST'])
 def chat():
     """General Baseball Q&A (NO RAG)"""
-    logger.info('POST /v1/chat')
+    ## logger.info('POST /v1/chat')
     data = request.get_json(silent=True) or {}
     user_input = data.get('message', 'Tell me about baseball')
     
@@ -77,7 +77,7 @@ def chat():
     is_baseball_related = any(keyword in user_lower for keyword in baseball_keywords)
     
     if not is_baseball_related:
-        logger.warning(f'OUT OF CONTEXT question detected: {user_input}')
+        ## logger.warning(f'OUT OF CONTEXT question detected: {user_input}')
         return jsonify({"response": "This question is out of context. I can only answer questions about baseball, players, statistics, and related topics."}), 200
     
     system_prompt = """## SYSTEM ROLE
@@ -121,7 +121,7 @@ ALWAYS respond in valid JSON only: {"response": "your answer"}"""
 @app.route('/v1/scout/query', methods=['POST'])
 def scout_query():
     """Query player database (RAG - 20 players max)"""
-    logger.info('POST /v1/scout/query')
+    ## logger.info('POST /v1/scout/query')
     try:
         data = request.get_json(silent=True) or {}
         query = data.get('query', '').strip()
@@ -135,7 +135,7 @@ def scout_query():
         is_baseball_related = any(keyword in query_lower for keyword in baseball_keywords)
         
         if not is_baseball_related:
-            logger.warning(f'OUT OF CONTEXT query in scout_query: {query}')
+            ## logger.warning(f'OUT OF CONTEXT query in scout_query: {query}')
             return jsonify({"answer": "This query is out of context. I can only answer questions about baseball, players, statistics, and related topics."}), 200
         
         player_service = PlayerService()
@@ -175,7 +175,7 @@ Respond in valid JSON only: {"answer": "your response"}"""
             content = response.get('message', {}).get('content', 'No answer')
             return jsonify({"answer": content}), 200
     except Exception as e:
-        logger.error(f'Error in scout_query: {str(e)}')
+        ## logger.error(f'Error in scout_query: {str(e)}')
         return jsonify({"error": str(e)}), 500
 
 ##############################################################################
@@ -186,7 +186,7 @@ Respond in valid JSON only: {"answer": "your response"}"""
 @app.route('/v1/ai/compare', methods=['GET'])
 def compare_players():
     """Compare two players (RAG - BA, HR, G stats)"""
-    logger.info('GET /v1/ai/compare')
+    ## logger.info('GET /v1/ai/compare')
     try:
         player_id_1 = request.args.get('player_id_1', '').strip()
         player_id_2 = request.args.get('player_id_2', '').strip()
@@ -200,7 +200,7 @@ def compare_players():
         p2 = player_service.search_by_player(player_id_2)
         
         if not (p1 and p2):
-            logger.warning(f'Player not found in compare_players: {player_id_1} or {player_id_2}')
+            ## logger.warning(f'Player not found in compare_players: {player_id_1} or {player_id_2}')
             return jsonify({"error": "Player not found"}), 404
         
         # Access first element since search_by_player returns a list
@@ -250,7 +250,7 @@ WRITECOMPARISON:"""
         
         try:
             content = response.get('message', {}).get('content', '').strip()
-            logger.info(f'LLM raw response for compare_players: {content}')
+            ## logger.info(f'LLM raw response for compare_players: {content}')
             
             if not content or content.lower() == 'n/a':
                 return jsonify({"comparison": "Unable to generate comparison at this time."}), 200
@@ -266,10 +266,10 @@ WRITECOMPARISON:"""
             
             return jsonify({"comparison": content}), 200
         except Exception as e:
-            logger.error(f'Error in compare_players processing: {str(e)}')
+            ## logger.error(f'Error in compare_players processing: {str(e)}')
             return jsonify({"comparison": content}), 200
     except Exception as e:
-        logger.error(f'Error in compare_players: {str(e)}')
+        ## logger.error(f'Error in compare_players: {str(e)}')
         return jsonify({"error": str(e)}), 500
 
 ##############################################################################
@@ -280,7 +280,7 @@ WRITECOMPARISON:"""
 @app.route('/v1/ai/bio/<player_id>', methods=['GET'])
 def get_player_biography(player_id):
     """Generate player biography using LLM from player data"""
-    logger.info(f'GET /v1/ai/bio/{player_id}')
+    ## logger.info(f'GET /v1/ai/bio/{player_id}')
     try:
         player_id = player_id.strip()
         if not player_id:
@@ -340,7 +340,7 @@ Example: "Babe Ruth (1895-1935) was a 6'2" left-handed slugger who revolutionize
 
 Generate a biography for this player."""
 
-        logger.info(f'Calling Ollama to generate bio for {first_name} {last_name}')
+        ## logger.info(f'Calling Ollama to generate bio for {first_name} {last_name}')
         
         response = ollama.chat(
             model='tinyllama',
@@ -355,7 +355,7 @@ Generate a biography for this player."""
         if response and 'message' in response:
             bio_text = response['message'].get('content', '').strip()
             if bio_text and len(bio_text) > 10:
-                logger.info(f'Bio generated: {bio_text[:100]}...')
+                ## logger.info(f'Bio generated: {bio_text[:100]}...')
                 # COMMENTED: Validate JSON response
                 # try:
                 #     json_response = json.loads(bio_text)
@@ -368,7 +368,7 @@ Generate a biography for this player."""
                 return jsonify({"bio": bio_text}), 200
         
         # Fallback if LLM fails
-        logger.warning(f'LLM returned empty or invalid response for {player_id}')
+        ## logger.warning(f'LLM returned empty or invalid response for {player_id}')
         bio = f"{first_name} {last_name} "
         if birth_year:
             bio += f"(born {int(birth_year)}) "
@@ -377,15 +377,15 @@ Generate a biography for this player."""
         return jsonify({"bio": bio.strip()}), 200
             
     except Exception as e:
-        logger.error(f'Exception in get_player_biography: {type(e).__name__}: {str(e)}')
+        ## logger.error(f'Exception in get_player_biography: {type(e).__name__}: {str(e)}')
         import traceback
-        logger.error(traceback.format_exc())
+        ## logger.error(traceback.format_exc())
         return jsonify({"bio": "Error generating biography"}), 500
 
 @app.route('/v1/ai/balance-team/<player_id>', methods=['GET'])
 def balance_team(player_id):
     """Generate balanced team with seed player"""
-    logger.info(f'GET /v1/ai/balance-team/{player_id}')
+    ## logger.info(f'GET /v1/ai/balance-team/{player_id}')
     try:
         player_id = player_id.strip()
         if not player_id:
@@ -424,13 +424,13 @@ def balance_team(player_id):
         
         return jsonify({"team": team_members}), 200
     except Exception as e:
-        logger.error(f'Error in balance_team: {str(e)}')
+        ## logger.error(f'Error in balance_team: {str(e)}')
         return jsonify({"error": str(e), "status": "failed"}), 500
 
 @app.route('/v1/ai/balance-team-by-features', methods=['GET'])
 def balance_team_by_features():
     """Generate balanced team by player features"""
-    logger.info('GET /v1/ai/balance-team-by-features')
+    ## logger.info('GET /v1/ai/balance-team-by-features')
     try:
         height = request.args.get('height', type=float)
         weight = request.args.get('weight', type=float)
@@ -469,7 +469,7 @@ def balance_team_by_features():
         
         return jsonify({"team": team}), 200
     except Exception as e:
-        logger.error(f'Error in balance_team_by_features: {str(e)}')
+        ## logger.error(f'Error in balance_team_by_features: {str(e)}')
         return jsonify({"error": str(e)}), 500
 
 @app.route('/v1/ai/balance-team-async/<string:player_id>', methods=['GET'])
@@ -902,7 +902,7 @@ def llm_generate():
         if not isinstance(team_size, int) or team_size < 1 or team_size > 20:
             return jsonify({"error": "Team size must be between 1 and 20"}), 400
         
-        logger.info(f'POST /llm/generate - playerId: {player_id}, teamSize: {team_size}')
+        ## logger.info(f'POST /llm/generate - playerId: {player_id}, teamSize: {team_size}')
         
         # Get seed player
         player_service = PlayerService()
@@ -953,7 +953,7 @@ def llm_generate():
         }), 200
     
     except Exception as e:
-        logger.error(f'Error in llm_generate: {str(e)}')
+        ## logger.error(f'Error in llm_generate: {str(e)}')
         return jsonify({"error": str(e)}), 500
 
 @app.route('/llm/generate-with-feedback', methods=['POST'])
@@ -976,7 +976,7 @@ def llm_generate_with_feedback():
         if not isinstance(rating, int) or rating < 1 or rating > 5:
             return jsonify({"error": "Rating must be 1-5"}), 400
         
-        logger.info(f'POST /llm/generate-with-feedback - playerId: {player_id}, rating: {rating}')
+        ## logger.info(f'POST /llm/generate-with-feedback - playerId: {player_id}, rating: {rating}')
         
         # Get seed player
         player_service = PlayerService()
@@ -1031,7 +1031,7 @@ def llm_generate_with_feedback():
         }), 200
     
     except Exception as e:
-        logger.error(f'Error in llm_generate_with_feedback: {str(e)}')
+        ## logger.error(f'Error in llm_generate_with_feedback: {str(e)}')
         return jsonify({"error": str(e)}), 500
 
 # Health Check Endpoint
@@ -1041,7 +1041,7 @@ def health_check():
     Health check endpoint that verifies overall service health.
     Checks: API status, Database connectivity, Ollama availability, Model service status
     """
-    logger.info('GET /health - Health check requested')
+    ## logger.info('GET /health - Health check requested')
     health_status = {
         "status": "healthy",
         "timestamp": datetime.datetime.now().isoformat(),
@@ -1071,7 +1071,7 @@ def health_check():
             "message": f"Database connected, {player_count} players found"
         }
     except Exception as e:
-        logger.error(f'Database health check failed: {str(e)}')
+        ## logger.error(f'Database health check failed: {str(e)}')
         health_status["components"]["database"] = {
             "status": "unhealthy",
             "message": f"Database connection failed: {str(e)}"
@@ -1087,7 +1087,7 @@ def health_check():
             "message": f"Ollama is available with {model_count} models"
         }
     except Exception as e:
-        logger.warning(f'Ollama health check failed: {str(e)}')
+        ## logger.warning(f'Ollama health check failed: {str(e)}')
         health_status["components"]["ollama"] = {
             "status": "unhealthy",
             "message": f"Ollama unavailable: {str(e)}"
@@ -1108,13 +1108,13 @@ def health_check():
                 "message": f"Model service returned status {model_response.status_code}"
             }
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        logger.warning('Model service health check failed - service unavailable (expected if not running)')
+        ## logger.warning('Model service health check failed - service unavailable (expected if not running)')
         health_status["components"]["model_service"] = {
             "status": "unavailable",
             "message": "Team generation model service not running (optional)"
         }
     except Exception as e:
-        logger.warning(f'Model service health check error: {str(e)}')
+        ## logger.warning(f'Model service health check error: {str(e)}')
         health_status["components"]["model_service"] = {
             "status": "unavailable",
             "message": f"Model service check failed: {str(e)}"
@@ -1133,5 +1133,5 @@ def health_check():
         return jsonify(health_status), 200
 
 if __name__ == '__main__':
-    logger.info('Starting Flask application on http://0.0.0.0:8000')
+    ## logger.info('Starting Flask application on http://0.0.0.0:8000')
     app.run(host='0.0.0.0', port=8000, debug=True)

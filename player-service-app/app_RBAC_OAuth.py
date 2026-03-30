@@ -1,7 +1,7 @@
 import datetime
 from functools import wraps
 import jwt
-import logging
+## import logging
 
 from flask import Flask, request, jsonify
 import pandas as pd
@@ -12,8 +12,8 @@ import ollama
 import os
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+## logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+## logger = logging.getLogger(__name__)
 
 # JWT Configuration
 SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-secret-key-change-in-production')
@@ -25,14 +25,14 @@ def authenticate_request():
     auth_header = request.headers.get('Authorization')
     
     if not auth_header:
-        logger.warning('Authentication attempt with missing Authorization header')
+        ## logger.warning('Authentication attempt with missing Authorization header')
         return None, None
     
     try:
         # Expected format: "Bearer <token>"
         parts = auth_header.split()
         if len(parts) != 2 or parts[0] != 'Bearer':
-            logger.warning('Authentication attempt with malformed Authorization header')
+            ## logger.warning('Authentication attempt with malformed Authorization header')
             return None, None
         
         token = parts[1]
@@ -42,20 +42,20 @@ def authenticate_request():
         role = payload.get('role')
         
         if not username or not role:
-            logger.warning('Authentication token missing username or role claims')
+            ## logger.warning('Authentication token missing username or role claims')
             return None, None
         
-        logger.info(f'Authentication successful for user: {username}, role: {role}')
+        ## logger.info(f'Authentication successful for user: {username}, role: {role}')
         return username, role
     
     except jwt.ExpiredSignatureError:
-        logger.warning('Authentication attempt with expired JWT token')
+        ## logger.warning('Authentication attempt with expired JWT token')
         return None, None
     except jwt.InvalidTokenError:
-        logger.warning('Authentication attempt with invalid JWT token')
+        ## logger.warning('Authentication attempt with invalid JWT token')
         return None, None
     except Exception as e:
-        logger.error(f'Authentication error: {str(e)}')
+        ## logger.error(f'Authentication error: {str(e)}')
         return None, None
 
 def require_auth(f):
@@ -84,11 +84,11 @@ def require_auth(f):
         username, role = authenticate_request()
         
         if not username:
-            logger.warning(f'Unauthorized access attempt on {request.method} {request.path}')
+            ## logger.warning(f'Unauthorized access attempt on {request.method} {request.path}')
             error_response = {"error": "Unauthorized - Invalid or missing JWT token", "code": 401, "status": "UNAUTHORIZED"}
             return jsonify(error_response), 401
         
-        logger.info(f'{request.method} {request.path} accessed by user: {username}')
+        ## logger.info(f'{request.method} {request.path} accessed by user: {username}')
         return f(*args, username=username, role=role, **kwargs)
     return decorated_function
 
@@ -172,11 +172,11 @@ def bulk_get_players(username=None, role=None):
 @require_auth
 def delete_player(player_id, username=None, role=None):
     if role != 'admin':
-        logger.warning(f'Delete attempt by non-admin user: {username}')
+        ## logger.warning(f'Delete attempt by non-admin user: {username}')
         error_response = {"error": "Forbidden - Only admin can delete players", "code": 403, "status": "FORBIDDEN"}
         return jsonify(error_response), 403
     
-    logger.info(f'Admin {username} deleting player: {player_id}')
+    ## logger.info(f'Admin {username} deleting player: {player_id}')
     player_service = PlayerServiceRBAC(role=role)
     result, status = player_service.delete(player_id)
     return jsonify(result), status
@@ -185,11 +185,11 @@ def delete_player(player_id, username=None, role=None):
 @require_auth
 def update_player(player_id, username=None, role=None):
     if role != 'admin':
-        logger.warning(f'Update attempt by non-admin user: {username}')
+        ## logger.warning(f'Update attempt by non-admin user: {username}')
         error_response = {"error": "Forbidden - Only admin can update players", "code": 403, "status": "FORBIDDEN"}
         return jsonify(error_response), 403
     
-    logger.info(f'Admin {username} updating player: {player_id}')
+    ## logger.info(f'Admin {username} updating player: {player_id}')
     data = request.get_json(silent=True)
     player_service = PlayerServiceRBAC(role=role)
     result, status = player_service.update_player(player_id, data)
@@ -199,11 +199,11 @@ def update_player(player_id, username=None, role=None):
 @require_auth
 def add_player(username=None, role=None):
     if role != 'admin':
-        logger.warning(f'Create attempt by non-admin user: {username}')
+        ## logger.warning(f'Create attempt by non-admin user: {username}')
         error_response = {"error": "Forbidden - Only admin can add players", "code": 403, "status": "FORBIDDEN"}
         return jsonify(error_response), 403
     
-    logger.info(f'Admin {username} creating new player')
+    ## logger.info(f'Admin {username} creating new player')
     data = request.get_json(silent=True)
     player_service = PlayerServiceRBAC(role=role)
     result, status = player_service.add_player(data)
