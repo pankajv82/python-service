@@ -139,11 +139,11 @@ class PlayerService:
             if not birth_countries:
                 logger.warning('Empty birth_countries list')
                 return {
-                "error": "birth_countries cant be empty",
-                "code": "INVALID_PARAM",
-                "status": 400,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
+                    "error": "birth_countries cant be empty",
+                    "code": "INVALID_PARAM",
+                    "status": 400,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
         
             placeholders = ", ".join("?" * len(birth_countries))
             query = f"SELECT * FROM players WHERE birthCountry IN ({placeholders})"
@@ -152,7 +152,6 @@ class PlayerService:
             logger.info(f'Found {len(players)} players from {len(birth_countries)} countries')
             return {
                 "players": players,
-                "countries": birth_countries,
                 "total": len(players)
             }
         except Exception as e:
@@ -186,20 +185,11 @@ class PlayerService:
         try:
             results = asyncio.run(fetch_countries_async())
             players = []
-            not_found = []
-            
-            for country, result in zip(birth_countries, results):
-                if isinstance(result, Exception):
-                    not_found.append(country)
-                elif result:
+            for result in results:
+                if result and not isinstance(result, Exception):
                     players.extend([self.convert_row_to_dict(row) if not isinstance(row, dict) else row for row in result])
-                else:
-                    not_found.append(country)
-            
             return {
                 "players": players,
-                "countries": birth_countries,
-                "not_found": not_found,
                 "total": len(players)
             }
         except Exception as e:
@@ -226,25 +216,17 @@ class PlayerService:
         
         try:
             players = []
-            not_found = []
-            
             with ThreadPoolExecutor(max_workers=5) as executor:
-                future_to_country = {executor.submit(self.search_by_country, country): country for country in birth_countries}
-                
-                for future in future_to_country:
+                futures = [executor.submit(self.search_by_country, country) for country in birth_countries]
+                for future in futures:
                     try:
                         result = future.result()
                         if result:
                             players.extend([self.convert_row_to_dict(row) if not isinstance(row, dict) else row for row in result])
-                        else:
-                            not_found.append(future_to_country[future])
                     except Exception:
-                        not_found.append(future_to_country[future])
-            
+                        pass
             return {
                 "players": players,
-                "countries": birth_countries,
-                "not_found": not_found,
                 "total": len(players)
             }, 200
         except Exception as e:
