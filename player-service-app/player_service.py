@@ -238,6 +238,42 @@ class PlayerService:
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }, 500
 
+    def search_by_country_multiple_processpool(self, birth_countries: list):
+        """Fetch players from multiple countries using ProcessPoolExecutor and search_by_country (max 5 workers)"""
+        logger.info(f'search_by_country_multiple_processpool() - countries: {len(birth_countries)}')
+        if not birth_countries:
+            logger.warning('Empty birth_countries list in processpool')
+            return {
+                "error": "birth_countries cant be empty",
+                "code": "INVALID_PARAM",
+                "status": 400,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        try:
+            from concurrent.futures import ProcessPoolExecutor
+            players = []
+            with ProcessPoolExecutor(max_workers=5) as executor:
+                futures = [executor.submit(self.search_by_country, country) for country in birth_countries]
+                for future in futures:
+                    try:
+                        result = future.result()
+                        if result:
+                            players.extend([self.convert_row_to_dict(row) if not isinstance(row, dict) else row for row in result])
+                    except Exception:
+                        pass
+            return {
+                "players": players,
+                "total": len(players)
+            }, 200
+        except Exception as e:
+            logger.error(f'Error in search_by_country_multiple_processpool: {str(e)}')
+            return {
+                "error": "Error fetching players from countries with processpool",
+                "code": "INTERNAL_ERROR",
+                "status": 500,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }, 500
+
 
     def convert_row_to_dict(self, row):
         dic = { self.columns[i]: row[i] for i in range(len(row)) }
@@ -530,6 +566,46 @@ class PlayerService:
             logger.error(f'Error in get_bulk_threadpool: {str(e)}')
             return {
                 "error": "Error fetching players with threadpool",
+                "code": "INTERNAL_ERROR",
+                "status": 500,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }, 500
+
+    def get_bulk_processpool(self, player_ids: list):
+        """Fetch multiple players using ProcessPoolExecutor and search_by_player"""
+        logger.info(f'get_bulk_processpool() - player_ids: {len(player_ids)}')
+        if not player_ids:
+            logger.warning('Empty player_ids list in processpool')
+            return {
+                "error": "player_ids cant be empty",
+                "code": "INVALID_PARAM",
+                "status": 400,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        try:
+            from concurrent.futures import ProcessPoolExecutor
+            players = []
+            not_found = []
+            with ProcessPoolExecutor(max_workers=5) as executor:
+                future_to_pid = {executor.submit(self.search_by_player, pid): pid for pid in player_ids}
+                for future in future_to_pid:
+                    try:
+                        result = future.result()
+                        if result:
+                            players.append(result)
+                        else:
+                            not_found.append(future_to_pid[future])
+                    except Exception:
+                        not_found.append(future_to_pid[future])
+            return {
+                "players": players,
+                "not_found": not_found,
+                "total": len(players)
+            }, 200
+        except Exception as e:
+            logger.error(f'Error in get_bulk_processpool: {str(e)}')
+            return {
+                "error": "Error fetching players with processpool",
                 "code": "INTERNAL_ERROR",
                 "status": 500,
                 "timestamp": datetime.now(timezone.utc).isoformat()
